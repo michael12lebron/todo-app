@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>To-do App</title>
+</head>
+<body>
+    <h1>My Tasks</h1>
+
+    <form method="POST" action="{% url 'add_task' %}">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="Enter a task..." required>
+        <button type="submit">Add</button>
+    </form>
+
+    <ul>
+        {% for task in tasks %}
+            <li>
+                <!-- Toggle Button -->
+                <form method="POST" action="{% url 'toggle_task' task.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">
+                        {% if task.is_completed %}✅{% else %}⬜{% endif %}
+                    </button>
+                </form>
+
+                <!-- Task Title (strikethrough if completed) -->
+                {% if task.is_completed %}
+                    <s>{{ task.title }}</s>
+                {% else %}
+                    {{ task.title }}
+                {% endif %}
+
+                <!-- Edit + Delete Icons -->
+                <a href="{% url 'edit_task' task.id %}">✏️</a>
+                <a href="{% url 'delete_task' task.id %}">🗑</a>
+            </li>
+        {% empty %}
+            <li>No tasks yet!</li>
+        {% endfor %}
+    </ul>
+
+    <p><a href="{% url 'logout' %}">Logout</a></p>
+</body>
+</html>
