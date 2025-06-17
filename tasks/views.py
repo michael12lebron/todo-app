@@ -47,7 +47,7 @@ class TaskListView(LoginRequiredMixin, ListView):
 
 class TaskCreateView(LoginRequiredMixin, CreateView):
     model = Task
-    form_class = TaskForm`
+    form_class = TaskForm
     success_url = reverse_lazy('home')
 
     def form_valid(self, form):
