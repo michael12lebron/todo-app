@@ -41,6 +41,15 @@
         {% csrf_token %}
         <input type="text" name="title" placeholder="Enter a task..." required><br>
         <textarea name="description" placeholder="Add a note..." rows="2" cols="30" style="margin-top: 5px;"></textarea><br>
+        <label for="due_date">Due Date:</label>
+        <input type="date" name="due_date" id="due_date"><br>
+        <label for="priority">Priority:</label>
+        <select name="priority" id="priority">
+            <option value="">--Select Priority--</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+        </select><br>
         <button type="submit" style="margin-top: 5px;">Add</button>
     </form>
 
@@ -50,7 +59,6 @@
     <ul>
         {% for task in tasks %}
             <li style="margin-bottom: 15px;">
-                <!-- Toggle Button -->
                 <form method="POST" action="{% url 'toggle_task' task.id %}" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit">
@@ -58,18 +66,15 @@
                     </button>
                 </form>
 
-                <!-- Task Title (strikethrough if completed) -->
                 {% if task.is_completed %}
                     <s>{{ task.title }}</s>
                 {% else %}
                     {{ task.title }}
                 {% endif %}
 
-                <!-- Edit + Delete Icons -->
                 <a href="{% url 'edit_task' task.id %}">✏️</a>
                 <a href="{% url 'delete_task' task.id %}">🗑</a>
 
-                <!-- Extra Info: Date, Priority, Note, Status -->
                 <div style="margin-left: 25px;">
                     <small>
                         Created: {{ task.created_at }}<br>
@@ -86,7 +91,6 @@
         {% endfor %}
     </ul>
 
-    <!-- Pagination Controls -->
     {% if is_paginated %}
         <div style="margin-top: 20px;">
             {% if page_obj.has_previous %}
@@ -103,7 +107,6 @@
         </div>
     {% endif %}
 
-    <!-- Logout -->
     <p><a href="{% url 'logout' %}">Logout</a></p>
 </body>
 </html>
