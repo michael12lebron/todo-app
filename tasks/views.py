@@ -1,22 +1,72 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
+from django.utils.timezone import now
 from .models import Task
 from .forms import TaskForm
 
-@login_required
-def home(request):
-    tasks = Task.objects.filter(user=request.user)
-    return render(request, 'tasks/home.html', {'tasks': tasks})
 
-@login_required
-def add_task(request):
-    if request.method == 'POST':
-        title = request.POST.get('title')
-        Task.objects.create(title=title, user=request.user)
-        return redirect('home')
-    return redirect('home')
+class TaskListView(LoginRequiredMixin, ListView):
+    model = Task
+    template_name = 'tasks/home.html'
+    context_object_name = 'tasks'
+    paginate_by = 5
+
+    def get_queryset(self):
+        queryset = Task.objects.filter(user=self.request.user)
+
+        status = self.request.GET.get('status')
+        priority = self.request.GET.get('priority')
+        due = self.request.GET.get('due')
+        overdue = self.request.GET.get('overdue')
+        created = self.request.GET.get('created')
+
+        if status == 'completed':
+            queryset = queryset.filter(is_completed=True)
+        elif status == 'pending':
+            queryset = queryset.filter(is_completed=False)
+
+        if priority:
+            queryset = queryset.filter(priority=priority)
+
+        if due:
+            queryset = queryset.filter(due_date=due)
+
+        if overdue == 'true':
+            queryset = queryset.filter(is_completed=False, due_date__lt=now().date())
+
+        if created:
+            queryset = queryset.filter(created_at__date=created)
+
+        return queryset.order_by('-created_at')
+
+
+class TaskCreateView(LoginRequiredMixin, CreateView):
+    model = Task
+    fields = ['title', 'due_date', 'priority', 'note']
+    success_url = reverse_lazy('home')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+
+class TaskUpdateView(LoginRequiredMixin, UpdateView):
+    model = Task
+    form_class = TaskForm
+    template_name = 'tasks/edit.html'
+    success_url = reverse_lazy('home')
+
+
+class TaskDeleteView(LoginRequiredMixin, DeleteView):
+    model = Task
+    success_url = reverse_lazy('home')
+    template_name = 'tasks/confirm_delete.html'
+
 
 @login_required
 def toggle_task(request, pk):
@@ -25,23 +75,6 @@ def toggle_task(request, pk):
     task.save()
     return redirect('home')
 
-@login_required
-def delete_task(request, pk):
-    task = get_object_or_404(Task, id=pk, user=request.user)
-    task.delete()
-    return redirect('home')
-
-@login_required
-def edit_task(request, pk):
-    task = get_object_or_404(Task, id=pk, user=request.user)
-    if request.method == 'POST':
-        form = TaskForm(request.POST, instance=task)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-    else:
-        form = TaskForm(instance=task)
-    return render(request, 'tasks/edit.html', {'form': form})
 
 def register_view(request):
     if request.method == 'POST':
@@ -54,6 +87,7 @@ def register_view(request):
         form = UserCreationForm()
     return render(request, 'tasks/register.html', {'form': form})
 
+
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
@@ -64,6 +98,7 @@ def login_view(request):
     else:
         form = AuthenticationForm()
     return render(request, 'tasks/login.html', {'form': form})
+
 
 def logout_view(request):
     logout(request)

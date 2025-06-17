@@ -6,6 +6,32 @@
 <body>
     <h1>My Tasks</h1>
 
+    <!-- Filter Form -->
+    <form method="GET">
+        <input type="date" name="created" placeholder="Created Date">
+        <input type="date" name="due" placeholder="Due Date">
+
+        <select name="status">
+            <option value="">--Status--</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+        </select>
+
+        <select name="priority">
+            <option value="">--Priority--</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+        </select>
+
+        <label>
+            <input type="checkbox" name="overdue" value="true"> Overdue
+        </label>
+
+        <button type="submit">Filter</button>
+    </form>
+
+    <!-- Add Task Form -->
     <form method="POST" action="{% url 'add_task' %}">
         {% csrf_token %}
         <input type="text" name="title" placeholder="Enter a task..." required>
@@ -14,7 +40,7 @@
 
     <ul>
         {% for task in tasks %}
-            <li>
+            <li style="margin-bottom: 15px;">
                 <!-- Toggle Button -->
                 <form method="POST" action="{% url 'toggle_task' task.id %}" style="display:inline;">
                     {% csrf_token %}
@@ -33,12 +59,42 @@
                 <!-- Edit + Delete Icons -->
                 <a href="{% url 'edit_task' task.id %}">✏️</a>
                 <a href="{% url 'delete_task' task.id %}">🗑</a>
+
+                <!-- Extra Info: Date, Priority, Note, Status -->
+                <div style="margin-left: 25px;">
+                    <small>
+                        Created: {{ task.created_at }}<br>
+                        Completed: {{ task.completed_at|default:"N/A" }}<br>
+                        Due: {{ task.due_date|default:"None" }}<br>
+                        Priority: {{ task.get_priority_display }}<br>
+                        Note: {{ task.description|default:"-" }}<br>
+                        Status: {% if task.is_completed %}✅ Completed{% else %}❌ Pending{% endif %}
+                    </small>
+                </div>
             </li>
         {% empty %}
             <li>No tasks yet!</li>
         {% endfor %}
     </ul>
 
+    <!-- Pagination Controls -->
+    {% if is_paginated %}
+        <div style="margin-top: 20px;">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">First</a>
+                <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            {% endif %}
+
+            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Logout -->
     <p><a href="{% url 'logout' %}">Logout</a></p>
 </body>
 </html>
