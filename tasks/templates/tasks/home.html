@@ -6,18 +6,23 @@
 <body>
     <h1>My Tasks</h1>
 
-    <!-- Filter Form -->
-    <form method="GET">
-        <input type="date" name="created" placeholder="Created Date">
-        <input type="date" name="due" placeholder="Due Date">
+    <!--Filter Form-->
+    <form method="GET" style="margin-bottom: 20px;">
+        <label for="created">Created Date:</label>
+        <input type="date" name="created" id="created">
 
-        <select name="status">
+        <label for="due">Due Date:</label>
+        <input type="date" name="due" id="due">
+
+        <label for="status">Status:</label>
+        <select name="status" id="status">
             <option value="">--Status--</option>
             <option value="pending">Pending</option>
             <option value="completed">Completed</option>
         </select>
 
-        <select name="priority">
+        <label for="priority">Priority:</label>
+        <select name="priority" id="priority">
             <option value="">--Priority--</option>
             <option value="low">Low</option>
             <option value="medium">Medium</option>
@@ -32,11 +37,15 @@
     </form>
 
     <!-- Add Task Form -->
-    <form method="POST" action="{% url 'add_task' %}">
+    <form method="POST" action="{% url 'add_task' %}" style="margin-bottom: 20px;">
         {% csrf_token %}
-        <input type="text" name="title" placeholder="Enter a task..." required>
-        <button type="submit">Add</button>
+        <input type="text" name="title" placeholder="Enter a task..." required><br>
+        <textarea name="description" placeholder="Add a note..." rows="2" cols="30" style="margin-top: 5px;"></textarea><br>
+        <button type="submit" style="margin-top: 5px;">Add</button>
     </form>
+
+    <h2>Task List</h2>
+    <hr>
 
     <ul>
         {% for task in tasks %}
@@ -98,3 +107,4 @@
     <p><a href="{% url 'logout' %}">Logout</a></p>
 </body>
 </html>
+

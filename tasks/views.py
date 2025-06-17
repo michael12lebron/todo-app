@@ -47,7 +47,7 @@ class TaskListView(LoginRequiredMixin, ListView):
 
 class TaskCreateView(LoginRequiredMixin, CreateView):
     model = Task
-    fields = ['title', 'due_date', 'priority', 'note']
+    form_class = TaskForm  # ✅ FIXED: changed from `fields = TaskForm`
     success_url = reverse_lazy('home')
 
     def form_valid(self, form):
